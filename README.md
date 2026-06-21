@@ -248,4 +248,4 @@ git push -u origin main
 
 ---
 
-*Built as a full-stack portfolio project demonstrating MERN + AI + third-party API integration.*
+
