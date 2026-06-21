@@ -4,6 +4,15 @@ const sendAlertEmail = require("../utils/sendEmail");
 const sendWhatsApp = require("../utils/sendWhatsApp");
 const { generateUniqueToken } = require("../utils/generateToken");
 
+function withTimeout(promise, ms, label) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error(`${label} timeout after ${ms}ms`)), ms)
+    ),
+  ]);
+}
+
 exports.sendNotifications = async (req, res) => {
   try {
     const { uploadId } = req.body;
@@ -12,98 +21,96 @@ exports.sendNotifications = async (req, res) => {
     if (!record)
       return res.status(404).json({ message: "Upload record not found." });
 
-    const results = [];
-
-    for (const defaulter of record.defaulters) {
-        // console.log("🔍 DEFAULTER:", JSON.stringify(defaulter));
+    const results = await Promise.allSettled(
+      record.defaulters.map(async (defaulter) => {
         console.log("🔍 DEFAULTER FULL:");
-console.dir(defaulter, { depth: null });
+        console.dir(defaulter, { depth: null });
+        console.log("📧 EMAIL FIELD =", defaulter.email);
 
-console.log("📧 EMAIL FIELD =", defaulter.email);
-      const attendance = Number(defaulter.percentage);
-      
+        const attendance = Number(defaulter.percentage);
 
-      const token = generateUniqueToken(
-        defaulter.rollNo,
-        record._id.toString()
-      );
+        const token = generateUniqueToken(
+          defaulter.rollNo,
+          record._id.toString()
+        );
 
-      const uniqueLink = `${process.env.CLIENT_URL}/letter/${token}`;
+        const uniqueLink = `${process.env.CLIENT_URL}/letter/${token}`;
 
-      const notification = await Notification.create({
-        attendanceRecordId: record._id,
-        studentName: defaulter.name,
-        studentEmail: defaulter.email,
-        studentPhone: defaulter.phone,
-        rollNo: defaulter.rollNo,
-        subject: record.subject,
-        semester: record.semester,
-        attendancePercent: attendance,
-        uniqueToken: token,
-      });
+        const notification = await Notification.create({
+          attendanceRecordId: record._id,
+          studentName: defaulter.name,
+          studentEmail: defaulter.email,
+          studentPhone: defaulter.phone,
+          rollNo: defaulter.rollNo,
+          subject: record.subject,
+          semester: record.semester,
+          attendancePercent: attendance,
+          uniqueToken: token,
+        });
 
-      let emailSent = false;
-      let whatsappSent = false;
+        let emailSent = false;
+        let whatsappSent = false;
 
-      // 📩 EMAIL (ONLY < 75%)
-      if (attendance < 75) {
-        try {
-        const emailResult = await sendAlertEmail(
-  {
-    ...defaulter._doc,
-    subject: record.subject,
-  },
-  uniqueLink
-);
-          console.log("📩 Email sent to:", defaulter.email);
+        // 📩 EMAIL (ONLY < 75%)
+        if (attendance < 75) {
+          try {
+            await withTimeout(
+              sendAlertEmail(
+                { ...defaulter._doc, subject: record.subject },
+                uniqueLink
+              ),
+              10000,
+              "Email"
+            );
 
-          emailSent = true;
+            console.log("📩 Email sent to:", defaulter.email);
+            emailSent = true;
 
-          await Notification.findByIdAndUpdate(notification._id, {
-            emailSent: true,
-          });
-        } catch (e) {
-          console.error(
-            `❌ Email failed for ${defaulter.email}:`,
-            e.message
-          );
+            await Notification.findByIdAndUpdate(notification._id, {
+              emailSent: true,
+            });
+          } catch (e) {
+            console.error(`❌ Email failed for ${defaulter.email}:`, e.message);
+          }
         }
-      }
 
-      // 📱 WHATSAPP
-      if (defaulter.phone) {
-        try {
-          await sendWhatsApp(
-            { ...defaulter, subject: record.subject },
-            uniqueLink
-          );
+        // 📱 WHATSAPP
+        if (defaulter.phone) {
+          try {
+            await withTimeout(
+              sendWhatsApp(
+                { ...defaulter, subject: record.subject },
+                uniqueLink
+              ),
+              10000,
+              "WhatsApp"
+            );
 
-          console.log("📱 WhatsApp sent to:", defaulter.phone);
+            console.log("📱 WhatsApp sent to:", defaulter.phone);
+            whatsappSent = true;
 
-          whatsappSent = true;
-
-          await Notification.findByIdAndUpdate(notification._id, {
-            whatsappSent: true,
-          });
-        } catch (e) {
-          console.error(
-            `❌ WhatsApp failed for ${defaulter.phone}:`,
-            e.message
-          );
+            await Notification.findByIdAndUpdate(notification._id, {
+              whatsappSent: true,
+            });
+          } catch (e) {
+            console.error(`❌ WhatsApp failed for ${defaulter.phone}:`, e.message);
+          }
         }
-      }
 
-      results.push({
-        name: defaulter.name,
-        email: defaulter.email,
-        emailSent,
-        whatsappSent,
-      });
-    }
+        return {
+          name: defaulter.name,
+          email: defaulter.email,
+          emailSent,
+          whatsappSent,
+        };
+      })
+    );
 
     res.json({
       message: "Notifications processed successfully.",
-      results,
+      results: results.map((r) =>
+        r.status === "fulfilled" ? r.value : { error: r.reason?.message }
+      ),
     });
   } catch (error) {
     console.log("❌ Controller error:", error.message);
