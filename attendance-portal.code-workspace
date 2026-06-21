@@ -1,0 +1,28 @@
+{
+  "folders": [
+    { "name": "Root", "path": "." },
+    { "name": "Server (Backend)", "path": "server" },
+    { "name": "Client (Frontend)", "path": "client" }
+  ],
+  "settings": {
+    "editor.formatOnSave": true,
+    "editor.tabSize": 2,
+    "files.exclude": {
+      "**/node_modules": true
+    },
+    "terminal.integrated.env.osx": { "NODE_ENV": "development" },
+    "terminal.integrated.env.linux": { "NODE_ENV": "development" }
+  },
+  "launch": {
+    "configurations": [
+      {
+        "type": "node",
+        "request": "launch",
+        "name": "Debug Server",
+        "program": "${workspaceFolder}/server/server.js",
+        "envFile": "${workspaceFolder}/server/.env",
+        "console": "integratedTerminal"
+      }
+    ]
+  }
+}
