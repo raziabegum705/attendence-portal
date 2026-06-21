@@ -1,7 +1,7 @@
 # 🎓 Student Attendance Alert Portal
 
 > A full-stack MERN web application that automates college attendance monitoring, sends Email & WhatsApp alerts to defaulters (<75%), and manages an AI-assisted excuse letter workflow for HODs.
-> **Theme:** Flipkart-inspired UI (Blue #2874f0 + Orange #fb641b)
+
 
 ---
 
@@ -206,16 +206,6 @@ git push -u origin main
 3. Root directory: `client`
 4. Framework: Vite
 5. Set environment variable: `VITE_API_URL=https://your-render-url.onrender.com`
-
----
-
-## 🎨 UI Theme
-
-Inspired by **Flipkart** design system:
-- Primary Blue: `#2874f0`
-- Action Orange: `#fb641b`  
-- Font: Poppins
-- Clean card-based layout with subtle shadows
 
 ---
 
