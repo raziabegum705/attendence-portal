@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
-import axios from "axios";
+import api from "../api/axiosConfig";
 import toast from "react-hot-toast";
 
 export default function StudentLetterPage() {
@@ -19,7 +19,7 @@ export default function StudentLetterPage() {
   useEffect(() => {
     const fetchForm = async () => {
       try {
-        const { data } = await axios.get(`/api/letter/form/${token}`);
+        const { data } = await api.get(`/letter/form/${token}`);
         setNotification(data.notification);
         setAlreadySubmitted(data.alreadySubmitted);
       } catch (e) {
@@ -42,7 +42,7 @@ export default function StudentLetterPage() {
     if (!reason.trim()) return toast.error("Please enter your reason first.");
     setAiLoading(true);
     try {
-      const { data } = await axios.post(`/api/ai/draft/${token}`, { reason });
+      const { data } = await api.post(`/ai/draft/${token}`, { reason });
       setAiDraft(data.draft);
       toast.success("AI draft generated.");
     } catch (e) {
@@ -57,7 +57,7 @@ export default function StudentLetterPage() {
     if (!reason.trim()) return toast.error("Reason is required.");
     setSubmitting(true);
     try {
-      await axios.post(`/api/letter/submit/${token}`, { reason, additionalNote, aiGeneratedDraft: aiDraft });
+      await api.post(`/letter/submit/${token}`, { reason, additionalNote, aiGeneratedDraft: aiDraft });
       localStorage.removeItem(`draft-reason-${token}`);
       localStorage.removeItem(`draft-note-${token}`);
       setSubmitted(true);
