@@ -517,7 +517,7 @@ textarea.form-control {
 
 .password-toggle {
   position: absolute;
-  top: 50%;
+  top: 22px;
   right: 10px;
   transform: translateY(-50%);
   width: 36px;
