@@ -137,7 +137,7 @@ export default function LoginPage() {
                 <label>Email address</label>
               </div>
 
-              <div className="form-group input-wrap floating-label">
+            <div className="form-group input-wrap floating-label">
                 <input
                   className="form-control"
                   type={showLoginPassword ? "text" : "password"}
@@ -147,13 +147,13 @@ export default function LoginPage() {
                   style={{ paddingRight: 56 }}
                 />
                 <label>Password</label>
-              <button
+                <button
                   className="password-toggle"
                   type="button"
-                  aria-label={showRegisterPassword ? "Hide password" : "Show password"}
-                  onClick={() => setShowRegisterPassword((value) => !value)}
+                  aria-label={showLoginPassword ? "Hide password" : "Show password"}
+                  onClick={() => setShowLoginPassword((value) => !value)}
                 >
-                  <EyeIcon hidden={showRegisterPassword} />
+                  <EyeIcon hidden={showLoginPassword} />
                 </button>
               </div>
               <div className="strength-track">
