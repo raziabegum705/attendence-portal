@@ -147,15 +147,19 @@ export default function LoginPage() {
                   style={{ paddingRight: 56 }}
                 />
                 <label>Password</label>
-                <button
+              <button
                   className="password-toggle"
                   type="button"
-                  aria-label={showLoginPassword ? "Hide password" : "Show password"}
-                  onClick={() => setShowLoginPassword((value) => !value)}
+                  aria-label={showRegisterPassword ? "Hide password" : "Show password"}
+                  onClick={() => setShowRegisterPassword((value) => !value)}
                 >
-                  <EyeIcon hidden={showLoginPassword} />
+                  <EyeIcon hidden={showRegisterPassword} />
                 </button>
               </div>
+              <div className="strength-track">
+                <div className="strength-fill" style={{ width: `${strength}%` }} />
+              </div>
+              <div className="strength-text">Password strength: {strengthLabel}</div>
 
               <div className="login-actions">
                 <label>
@@ -217,9 +221,9 @@ export default function LoginPage() {
                     <option value="hod">HOD</option>
                   </select>
                 </div>
-                <div className="form-group input-wrap floating-label">
-                  <input className="form-control" type="text" required value={regForm.department} onChange={(e) => setRegForm({ ...regForm, department: e.target.value })} />
-                  <label>Department</label>
+              <div className="form-group">
+                  <label className="form-label">Department</label>
+                  <input className="form-control" type="text" required value={regForm.department} onChange={(e) => setRegForm({ ...regForm, department: e.target.value })} placeholder="e.g. Computer Science" />
                 </div>
               </div>
 
